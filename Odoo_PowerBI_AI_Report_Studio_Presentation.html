@@ -8,53 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
+  /* One fixed dark look for presenting, whatever the viewer's system theme, built on
+     slide 8: deep aubergine for filled shapes, amber for coloured text. */
   :root {
-    --backdrop: #E6E0E9;
-    --ground: #F6F4F7;
-    --surface: #FFFFFF;
-    --sunk: #EEEAF0;
-    --ink: #231B26;
-    --muted: #675C6B;
-    --line: #DED7E1;
-    --plum: #714B67;
-    --plum-soft: #F1E8EF;
-    --amber: #E3A008;
-    --amber-soft: #FBF1D9;
-    --old: #B04A33;
-    --old-soft: #F7E7E2;
-    --new: #23775A;
-    --new-soft: #E2F1EA;
-    --focus: #714B67;
-    /* the privacy slide: deep aubergine in both themes, so it always reads as dark */
-    --inverse: #3B2335;
-    --inverse-ink: #F6EFF4;
-
-    --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-    --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --backdrop: #0C090E;
-      --ground: #151017;
-      --surface: #1F1822;
-      --sunk: #1A141C;
-      --ink: #F2EDF3;
-      --muted: #AEA2B1;
-      --line: #372D3A;
-      --plum: #D3A6C8;
-      --plum-soft: #2D2230;
-      --amber: #F0B429;
-      --amber-soft: #33290F;
-      --old: #E8866F;
-      --old-soft: #3A2521;
-      --new: #62C79C;
-      --new-soft: #17312A;
-      --focus: #F0B429;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
     --backdrop: #0C090E;
     --ground: #151017;
     --surface: #1F1822;
@@ -62,8 +18,10 @@
     --ink: #F2EDF3;
     --muted: #AEA2B1;
     --line: #372D3A;
-    --plum: #D3A6C8;
-    --plum-soft: #2D2230;
+    --aubergine: #3B2335;            /* slide 8's background: every filled shape */
+    --on-aubergine: #F6EFF4;
+    --aubergine-edge: rgba(246, 239, 244, 0.26);
+    --accent: #F0B429;               /* slide 8's heading colour: every coloured text */
     --amber: #F0B429;
     --amber-soft: #33290F;
     --old: #E8866F;
@@ -71,6 +29,17 @@
     --new: #62C79C;
     --new-soft: #17312A;
     --focus: #F0B429;
+    --inverse: #3B2335;
+    --inverse-ink: #F6EFF4;
+    /* the illustrated report on slide 1 is a white page, like a real Power BI report */
+    --paper: #FFFFFF;
+    --paper-panel: #F6F4F7;
+    --paper-line: #DED7E1;
+    --paper-ink: #231B26;
+    --paper-tint: #EFE6EC;
+
+    --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+    --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
     color-scheme: dark;
   }
 
@@ -143,7 +112,7 @@
     font-stretch: 112%;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--plum);
+    color: var(--accent);
   }
   .head { display: flex; flex-direction: column; gap: 14px; flex: none; }
   .slide:not(.close) > .head + * { margin-top: auto; }
@@ -161,7 +130,7 @@
     line-height: 1;
     letter-spacing: -0.02em;
   }
-  .title-copy h1 .then { display: block; color: var(--plum); }
+  .title-copy h1 .then { display: block; color: var(--accent); }
   .title-copy .lead { max-width: 30ch; }
   .keys { font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 16px; }
   kbd {
@@ -204,7 +173,7 @@
     height: 1.05em;
     margin-left: 3px;
     vertical-align: -0.16em;
-    background: var(--plum);
+    background: var(--accent);
     animation: blink 1.1s steps(1) infinite;
   }
   @keyframes blink { 50% { opacity: 0; } }
@@ -217,27 +186,28 @@
     font-stretch: 106%;
     padding: 7px 14px;
     border-radius: 7px;
-    background: var(--plum);
-    color: var(--ground);
+    background: var(--aubergine);
+    color: var(--on-aubergine);
+    box-shadow: inset 0 0 0 1px var(--aubergine-edge);
   }
   .demo-arrow { display: flex; justify-content: center; height: 30px; }
   .demo-arrow svg { width: 20px; height: 30px; }
   .demo-arrow line { stroke: var(--amber); }
   .demo-arrow polygon { fill: var(--amber); }
-  .thumb { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .thumb { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
   .thumb svg { display: block; width: 100%; height: auto; }
   .demo figcaption { font-size: 14px; color: var(--muted); }
-  .t-tile, .t-panel { fill: var(--ground); stroke: var(--line); stroke-width: 1; }
-  .t-label { fill: var(--line); }
-  .t-value { fill: var(--ink); }
-  .t-plum { fill: var(--plum); }
+  .t-tile, .t-panel { fill: var(--paper-panel); stroke: var(--paper-line); stroke-width: 1; }
+  .t-label { fill: var(--paper-line); }
+  .t-value { fill: var(--paper-ink); }
+  .t-plum { fill: var(--aubergine); }
   .t-amber { fill: var(--amber); }
-  .t-area { fill: var(--plum-soft); }
-  .t-line { fill: none; stroke: var(--plum); stroke-width: 2; stroke-linejoin: round; }
-  .t-dot { fill: var(--plum); }
+  .t-area { fill: var(--paper-tint); }
+  .t-line { fill: none; stroke: var(--aubergine); stroke-width: 2; stroke-linejoin: round; }
+  .t-dot { fill: var(--aubergine); }
   .t-ring { fill: none; stroke-width: 9; }
-  .t-ring.base { stroke: var(--line); }
-  .t-ring.a { stroke: var(--plum); }
+  .t-ring.base { stroke: var(--paper-line); }
+  .t-ring.a { stroke: var(--aubergine); }
   .t-ring.b { stroke: var(--amber); }
 
   /* ---------- 2 · recap ---------- */
@@ -280,7 +250,7 @@
   .diagram svg { display: block; width: 100%; height: auto; }
   .diagram figcaption { font-size: 20px; }
   .d-box { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
-  .d-result { fill: var(--plum-soft); stroke: var(--plum); stroke-width: 2; }
+  .d-result { fill: var(--aubergine); stroke: var(--aubergine-edge); stroke-width: 2; }
   .d-go { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 2; }
   .d-title { fill: var(--ink); font-family: var(--display); font-weight: 720; font-size: 14px; }
   .d-sub { fill: var(--muted); font-family: var(--body); font-size: 12.5px; }
@@ -320,12 +290,12 @@
     width: 52px; height: 52px;
     display: grid; place-items: center;
     border-radius: 50%;
-    background: var(--plum);
-    color: var(--ground);
+    background: var(--aubergine);
+    color: var(--on-aubergine);
     font-family: var(--display);
     font-weight: 800;
     font-size: 21px;
-    box-shadow: 0 0 0 7px var(--ground);
+    box-shadow: inset 0 0 0 2px var(--aubergine-edge), 0 0 0 7px var(--ground);
   }
   .steps li.click::before { background: var(--amber); color: #231B26; }
   .steps p { color: var(--muted); font-size: 20px; line-height: 1.45; }
@@ -340,8 +310,9 @@
     font-size: 15px;
     padding: 3px 11px;
     border-radius: 999px;
-    background: var(--plum-soft);
-    color: var(--plum);
+    background: var(--aubergine);
+    color: var(--on-aubergine);
+    box-shadow: inset 0 0 0 1px var(--aubergine-edge);
     font-weight: 700;
   }
 
@@ -409,7 +380,7 @@
   .setup { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 30px 56px; }
   .setup li { display: grid; grid-template-columns: 30px 1fr; gap: 16px; align-items: start; font-size: 22px; line-height: 1.45; color: var(--muted); }
   .setup b { display: block; color: var(--ink); font-family: var(--display); font-weight: 720; font-stretch: 104%; font-size: 26px; margin-bottom: 6px; }
-  .box { width: 26px; height: 26px; margin-top: 3px; border: 2px solid var(--plum); border-radius: 7px; }
+  .box { width: 26px; height: 26px; margin-top: 3px; border: 2px solid var(--accent); border-radius: 7px; }
 
   /* ---------- 11 · close ---------- */
   .close h2 { font-size: 58px; font-stretch: 116%; font-weight: 840; max-width: 20ch; }
@@ -481,7 +452,7 @@
   <!-- ============ 1 · TITLE ============ -->
   <section class="slide title-slide" data-title="AI Report Studio">
     <div class="title-copy">
-      <p class="eyebrow">Odoo Power BI Connector · New feature</p>
+      <p class="eyebrow">Odoo Power BI Connector · AI Report Studio</p>
       <h1>Describe the report. <span class="then">Get it in Power BI.</span></h1>
       <p class="lead">One sentence becomes a finished Power BI report: the formulas, the charts and the layout, bound to your Odoo data.</p>
       <p class="keys"><span><kbd>→</kbd> next</span><span><kbd>←</kbd> back</span><span><kbd>F</kbd> full screen</span></p>
@@ -836,9 +807,9 @@
   </section>
 
   <!-- ============ 11 · CLOSE ============ -->
-  <section class="slide close" data-title="Conclusion">
+  <section class="slide close" data-title="The bottom line">
     <div class="head">
-      <p class="eyebrow">Conclusion</p>
+      <p class="eyebrow">The bottom line</p>
       <h2>Part one brought the data to Power BI. Part two builds the reports.</h2>
     </div>
     <div class="outcomes">
