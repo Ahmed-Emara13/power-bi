@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
   :root {
+    --backdrop: #E6E0E9;
     --ground: #F6F4F7;
     --surface: #FFFFFF;
     --sunk: #EEEAF0;
@@ -24,6 +25,9 @@
     --new: #23775A;
     --new-soft: #E2F1EA;
     --focus: #714B67;
+    /* the privacy slide: deep aubergine in both themes, so it always reads as dark */
+    --inverse: #3B2335;
+    --inverse-ink: #F6EFF4;
 
     --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
     --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -31,6 +35,7 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
+      --backdrop: #0C090E;
       --ground: #151017;
       --surface: #1F1822;
       --sunk: #1A141C;
@@ -50,6 +55,7 @@
     }
   }
   :root[data-theme="dark"] {
+    --backdrop: #0C090E;
     --ground: #151017;
     --surface: #1F1822;
     --sunk: #1A141C;
@@ -69,73 +75,95 @@
   }
 
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-
+  html, body { height: 100%; }
   body {
     margin: 0;
-    background: var(--ground);
+    overflow: hidden;
+    background: var(--backdrop);
     color: var(--ink);
     font-family: var(--body);
-    font-size: 18px;
-    line-height: 1.55;
-    padding-inline: clamp(16px, 5vw, 72px);
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1120px; margin-inline: auto; }
-  a { color: inherit; }
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
 
-  /* ---------- type scale: 13 / 15 / 17 / 18 / 21 / 44 / hero ---------- */
+  /* ---------- the 16:9 stage, scaled to fit the window ---------- */
+  .stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1280px;
+    height: 720px;
+    transform: translate(-50%, -50%) scale(var(--scale, 1));
+    background: var(--ground);
+    overflow: hidden;
+    box-shadow: 0 20px 60px -30px rgba(0, 0, 0, 0.45);
+  }
+
+  /* ---------- slides and the transition between them ---------- */
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 60px 80px 76px;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(28px);
+    transition: opacity 0.38s ease, transform 0.38s ease, visibility 0s linear 0.38s;
+  }
+  .slide.past { transform: translateX(-28px); }
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.38s ease, transform 0.38s ease, visibility 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .slide.active { transition: none; transform: none; }
+  }
+
+  /* ---------- type scale on the fixed canvas: 15 / 18 / 20 / 22 / 26 / 44 / 68 ---------- */
   h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
   h2 {
-    font-size: clamp(30px, 4.2vw, 44px);
+    font-size: 44px;
     font-weight: 780;
     font-stretch: 110%;
-    line-height: 1.08;
+    line-height: 1.1;
     letter-spacing: -0.01em;
-    max-width: 24ch;
+    max-width: 26ch;
   }
-  h3 { font-size: 21px; font-weight: 720; font-stretch: 104%; line-height: 1.2; }
+  h3 { font-size: 22px; font-weight: 720; font-stretch: 104%; line-height: 1.2; }
   p { margin: 0; }
+  ul { margin: 0; }
   .eyebrow {
     font-family: var(--display);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     font-stretch: 112%;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--plum);
   }
-  .lead { font-size: 21px; color: var(--muted); max-width: 62ch; }
+  .head { display: flex; flex-direction: column; gap: 14px; flex: none; }
+  .slide:not(.close) > .head + * { margin-top: auto; }
+  .slide:not(.close) > .head ~ :last-child { margin-bottom: auto; }
+  .lead { font-size: 22px; line-height: 1.45; color: var(--muted); max-width: 60ch; }
+  .muted { color: var(--muted); }
 
-  .slide {
-    padding-block: clamp(56px, 9vh, 112px);
-    border-top: 1px solid var(--line);
-    display: grid;
-    gap: 40px;
-  }
-  .slide-head { display: grid; gap: 14px; }
-
-  /* ---------- hero: a sentence becomes a report ---------- */
-  .hero {
-    border-top: 0;
-    padding-block: clamp(40px, 8vh, 96px) clamp(48px, 8vh, 96px);
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    align-items: center;
-    gap: clamp(32px, 5vw, 64px);
-  }
-  .hero-copy { display: grid; gap: 22px; align-content: center; }
-  .hero h1 {
-    font-size: clamp(40px, 6.2vw, 76px);
-    font-weight: 840;
+  /* ---------- 1 · title ---------- */
+  .title-slide { flex-direction: row; align-items: center; gap: 56px; }
+  .title-copy { flex: 1.05; display: flex; flex-direction: column; gap: 24px; }
+  .title-copy h1 {
+    font-size: 68px;
+    font-weight: 850;
     font-stretch: 116%;
     line-height: 1;
     letter-spacing: -0.02em;
   }
-  .hero h1 .then { display: block; color: var(--plum); }
-  .hero .lead { font-size: 21px; max-width: 46ch; }
-  .hint { font-size: 15px; color: var(--muted); }
+  .title-copy h1 .then { display: block; color: var(--plum); }
+  .title-copy .lead { max-width: 30ch; }
+  .keys { font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 16px; }
   kbd {
     font-family: var(--body);
     font-size: 14px;
@@ -146,21 +174,22 @@
     background: var(--surface);
     color: var(--ink);
   }
-
-  .demo { margin: 0; display: grid; gap: 12px; justify-items: stretch; }
+  .byline { font-size: 16px; color: var(--muted); }
+  .demo { flex: 1; margin: 0; display: flex; flex-direction: column; gap: 10px; }
   .prompt {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 14px;
     padding: 16px 18px;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
     box-shadow: 0 10px 30px -18px rgba(35, 27, 38, 0.35);
   }
-  .prompt-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .prompt-label { font-size: 14px; font-weight: 700; color: var(--muted); }
   .prompt-text {
     font-family: var(--display);
-    font-size: clamp(18px, 2vw, 21px);
+    font-size: 20px;
     font-weight: 600;
     font-stretch: 104%;
     line-height: 1.35;
@@ -181,7 +210,7 @@
   @keyframes blink { 50% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
   .prompt-button {
-    justify-self: start;
+    align-self: flex-start;
     font-family: var(--display);
     font-size: 14px;
     font-weight: 700;
@@ -191,20 +220,14 @@
     background: var(--plum);
     color: var(--ground);
   }
-  .demo-arrow { display: grid; place-items: center; height: 34px; }
-  .demo-arrow svg { width: 22px; height: 34px; }
+  .demo-arrow { display: flex; justify-content: center; height: 30px; }
+  .demo-arrow svg { width: 20px; height: 30px; }
   .demo-arrow line { stroke: var(--amber); }
   .demo-arrow polygon { fill: var(--amber); }
-  .thumb {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px;
-  }
+  .thumb { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
   .thumb svg { display: block; width: 100%; height: auto; }
   .demo figcaption { font-size: 14px; color: var(--muted); }
-  .t-tile { fill: var(--ground); stroke: var(--line); stroke-width: 1; }
-  .t-panel { fill: var(--ground); stroke: var(--line); stroke-width: 1; }
+  .t-tile, .t-panel { fill: var(--ground); stroke: var(--line); stroke-width: 1; }
   .t-label { fill: var(--line); }
   .t-value { fill: var(--ink); }
   .t-plum { fill: var(--plum); }
@@ -217,50 +240,45 @@
   .t-ring.a { stroke: var(--plum); }
   .t-ring.b { stroke: var(--amber); }
 
-  /* ---------- recap ---------- */
-  .recap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; list-style: none; margin: 0; padding: 0; }
-  .recap li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; font-size: 17px; }
+  /* ---------- 2 · recap ---------- */
+  .recap { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 36px; }
+  .recap li { display: grid; grid-template-columns: 30px 1fr; gap: 14px; align-items: start; font-size: 20px; line-height: 1.4; }
   .tick {
-    width: 26px; height: 26px;
+    width: 30px; height: 30px;
     border-radius: 50%;
     display: grid; place-items: center;
     background: var(--new-soft);
     color: var(--new);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
   }
   .gap-line {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 16px;
+    display: flex;
     align-items: center;
-    padding: 18px 22px;
+    gap: 18px;
+    padding: 20px 24px;
     background: var(--amber-soft);
-    border-radius: 12px;
-    font-size: 19px;
+    border-radius: 14px;
+    font-size: 22px;
   }
   .gap-line b { font-family: var(--display); font-stretch: 108%; }
   .gap-line .mark {
-    width: 34px; height: 34px;
+    flex: none;
+    width: 38px; height: 38px;
     border-radius: 50%;
     display: grid; place-items: center;
     background: var(--amber);
     color: #231B26;
     font-family: var(--display);
     font-weight: 800;
+    font-size: 20px;
   }
 
-  /* ---------- workflow diagram ---------- */
-  .diagram { margin: 0; display: grid; gap: 18px; }
-  .diagram-scroll {
-    overflow-x: auto;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 20px 16px;
-  }
-  .diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
-  .diagram figcaption { font-size: 19px; max-width: 70ch; }
+  /* ---------- 3 · workflow diagram ---------- */
+  .diagram { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  .diagram-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; }
+  .diagram svg { display: block; width: 100%; height: auto; }
+  .diagram figcaption { font-size: 20px; }
   .d-box { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
   .d-result { fill: var(--plum-soft); stroke: var(--plum); stroke-width: 2; }
   .d-go { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 2; }
@@ -279,91 +297,85 @@
   .d-text-old { fill: var(--old); font-family: var(--body); font-size: 13px; font-weight: 700; }
   .d-text-new { fill: var(--new); font-family: var(--body); font-size: 13px; font-weight: 700; }
 
-  /* ---------- steps: a real sequence ---------- */
+  /* ---------- 4 · steps (a real sequence) ---------- */
   .steps {
-    list-style: none; margin: 0; padding: 0;
+    list-style: none; padding: 0;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 26px;
     counter-reset: step;
     position: relative;
+    margin-top: 18px;
   }
   .steps::before {
     content: "";
     position: absolute;
-    top: 21px; left: 22px; right: 22px;
+    top: 25px; left: 26px; right: 26px;
     height: 2px;
     background: var(--line);
   }
-  .steps li { position: relative; display: grid; gap: 10px; align-content: start; counter-increment: step; }
+  .steps li { position: relative; display: flex; flex-direction: column; gap: 12px; counter-increment: step; }
   .steps li::before {
     content: counter(step);
-    width: 44px; height: 44px;
+    width: 52px; height: 52px;
     display: grid; place-items: center;
     border-radius: 50%;
     background: var(--plum);
     color: var(--ground);
     font-family: var(--display);
     font-weight: 800;
-    font-size: 18px;
-    box-shadow: 0 0 0 6px var(--ground);
+    font-size: 21px;
+    box-shadow: 0 0 0 7px var(--ground);
   }
   .steps li.click::before { background: var(--amber); color: #231B26; }
-  .steps p { color: var(--muted); font-size: 17px; }
+  .steps p { color: var(--muted); font-size: 20px; line-height: 1.45; }
 
-  /* ---------- blueprint: what the AI prepares ---------- */
-  .blueprint { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 56px; margin: 0; }
-  .blueprint div { display: grid; gap: 6px; padding-block: 22px; border-top: 1px solid var(--line); align-content: start; }
-  .blueprint dt { font-family: var(--display); font-size: 21px; font-weight: 720; font-stretch: 104%; }
-  .blueprint dd { margin: 0; color: var(--muted); }
-  .blueprint .wide { grid-column: 1 / -1; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; list-style: none; padding: 0; }
+  /* ---------- 5 · blueprint ---------- */
+  .blueprint { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 40px; }
+  .blueprint div { display: flex; flex-direction: column; gap: 8px; padding-block: 20px; border-top: 1px solid var(--line); }
+  .blueprint dt { font-family: var(--display); font-size: 22px; font-weight: 720; font-stretch: 104%; }
+  .blueprint dd { margin: 0; color: var(--muted); font-size: 20px; line-height: 1.45; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; list-style: none; padding: 0; }
   .chips li {
     font-size: 15px;
-    padding: 4px 12px;
+    padding: 3px 11px;
     border-radius: 999px;
     background: var(--plum-soft);
     color: var(--plum);
     font-weight: 700;
   }
 
-  /* ---------- benefits ---------- */
-  .benefits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  /* ---------- 6 · benefits ---------- */
+  .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
   .benefit {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 16px;
-    padding: 26px;
-    display: grid;
-    gap: 14px;
-    align-content: start;
+    padding: 30px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
-  .benefit .word {
-    font-family: var(--display);
-    font-size: 34px;
-    font-weight: 850;
-    font-stretch: 118%;
-    line-height: 1;
-  }
+  .benefit .word { font-family: var(--display); font-size: 44px; font-weight: 850; font-stretch: 118%; line-height: 1; }
   .benefit.cost .word { color: var(--new); }
-  .benefit ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-  .benefit li { position: relative; padding-left: 20px; font-size: 17px; }
+  .benefit ul { padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .benefit li { position: relative; padding-left: 22px; font-size: 19px; line-height: 1.4; }
   .benefit li::before {
     content: "";
     position: absolute;
-    left: 2px; top: 0.62em;
-    width: 8px; height: 8px;
+    left: 2px; top: 0.55em;
+    width: 9px; height: 9px;
     border-radius: 2px;
     background: var(--amber);
   }
 
-  /* ---------- comparison ---------- */
-  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-  table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 17px; }
-  th, td { text-align: left; padding: 16px 20px; vertical-align: top; }
+  /* ---------- 7 · comparison ---------- */
+  .table-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 19px; }
+  th, td { text-align: left; padding: 14px 22px; vertical-align: top; }
   thead th {
     font-family: var(--display);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 750;
     font-stretch: 110%;
     letter-spacing: 0.08em;
@@ -372,123 +384,109 @@
   }
   thead th.col-old { color: var(--old); }
   thead th.col-new { color: var(--new); }
-  tbody th { font-family: var(--display); font-weight: 680; font-stretch: 104%; width: 24%; }
+  tbody th { font-family: var(--display); font-weight: 680; font-stretch: 104%; width: 26%; }
   tbody tr + tr > * { border-top: 1px solid var(--line); }
-  td.old { color: var(--muted); width: 36%; }
+  td.old { color: var(--muted); width: 35%; }
   td.new { background: var(--new-soft); font-weight: 700; }
 
-  /* ---------- trust ---------- */
-  .private {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: 32px;
-    align-items: center;
-    padding: clamp(24px, 4vw, 40px);
-    background: var(--plum);
-    color: var(--ground);
-    border-radius: 18px;
-  }
-  .private h3 { font-size: clamp(26px, 3.2vw, 36px); font-weight: 820; font-stretch: 114%; line-height: 1.1; }
-  .private p { font-size: 18px; opacity: 0.92; }
-  .sees { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .sees div { background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
-  .sees b { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-stretch: 110%; }
-  .sees ul { margin: 0; padding-left: 18px; font-size: 16px; }
-  .guards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 40px; }
-  .guard { display: grid; gap: 6px; align-content: start; padding-top: 16px; border-top: 3px solid var(--new); }
-  .guard p { color: var(--muted); font-size: 17px; }
+  /* ---------- 8 · privacy (the one inverted slide) ---------- */
+  .slide.inverse { background: var(--inverse); color: var(--inverse-ink); flex-direction: row; align-items: center; gap: 60px; }
+  .inverse .eyebrow { color: var(--amber); }
+  .inverse .claim { flex: 1; display: flex; flex-direction: column; gap: 22px; }
+  .inverse h2 { font-size: 52px; font-weight: 840; font-stretch: 116%; max-width: 14ch; }
+  .inverse .claim p { font-size: 22px; line-height: 1.45; opacity: 0.92; max-width: 32ch; }
+  .sees { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sees div { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .sees b { font-family: var(--display); font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; font-stretch: 110%; }
+  .sees ul { padding-left: 20px; font-size: 20px; line-height: 1.6; }
 
-  /* ---------- setup ---------- */
-  .setup { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 40px; }
-  .setup li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
-  .setup li span:last-child { color: var(--muted); }
-  .setup b { color: var(--ink); font-family: var(--display); font-weight: 700; font-stretch: 104%; }
-  .box {
-    width: 22px; height: 22px;
-    margin-top: 3px;
-    border: 2px solid var(--plum);
-    border-radius: 6px;
-  }
+  /* ---------- 9 · guards ---------- */
+  .guards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px 44px; }
+  .guard { display: flex; flex-direction: column; gap: 8px; padding-top: 18px; border-top: 3px solid var(--new); }
+  .guard p { color: var(--muted); font-size: 20px; line-height: 1.45; }
 
-  /* ---------- close ---------- */
-  .close h2 { font-size: clamp(34px, 5.4vw, 60px); font-stretch: 116%; font-weight: 840; max-width: 20ch; }
-  .outcomes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-  .outcome { display: grid; gap: 8px; align-content: start; padding-top: 18px; border-top: 3px solid var(--amber); }
-  .outcome p { color: var(--muted); }
-  footer {
-    padding-block: 32px 48px;
-    border-top: 1px solid var(--line);
+  /* ---------- 10 · setup ---------- */
+  .setup { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 30px 56px; }
+  .setup li { display: grid; grid-template-columns: 30px 1fr; gap: 16px; align-items: start; font-size: 22px; line-height: 1.45; color: var(--muted); }
+  .setup b { display: block; color: var(--ink); font-family: var(--display); font-weight: 720; font-stretch: 104%; font-size: 26px; margin-bottom: 6px; }
+  .box { width: 26px; height: 26px; margin-top: 3px; border: 2px solid var(--plum); border-radius: 7px; }
+
+  /* ---------- 11 · close ---------- */
+  .close h2 { font-size: 58px; font-stretch: 116%; font-weight: 840; max-width: 20ch; }
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: auto; }
+  .outcome { display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 4px solid var(--amber); }
+  .outcome p { color: var(--muted); font-size: 19px; line-height: 1.45; }
+  .close .byline { margin-top: 8px; }
+
+  /* ---------- presenter controls, inside the stage ---------- */
+  .progress { position: absolute; left: 0; bottom: 0; height: 5px; background: var(--amber); transition: width 0.38s ease; }
+  .controls {
+    position: absolute;
+    right: 28px;
+    bottom: 22px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
     font-size: 15px;
+    font-weight: 700;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    z-index: 5;
   }
-
-  /* ---------- presenter rail ---------- */
-  .rail { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: none; z-index: 10; }
-  .rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .rail a { display: flex; align-items: center; justify-content: flex-end; gap: 10px; text-decoration: none; font-size: 13px; color: var(--muted); padding: 3px 0; }
-  .rail .label { opacity: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; white-space: nowrap; transition: opacity 0.15s ease; }
-  .rail .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: none; transition: transform 0.15s ease, background 0.15s ease; }
-  .rail a:hover .label, .rail a:focus-visible .label { opacity: 1; }
-  .rail a[aria-current="true"] .dot { background: var(--plum); transform: scale(1.35); }
-  .rail a[aria-current="true"] { color: var(--ink); }
-  @media (prefers-reduced-motion: reduce) { .rail .label, .rail .dot { transition: none; } }
-  @media (min-width: 1320px) { .rail { display: block; } }
+  .controls button {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .controls button:disabled { opacity: 0.35; cursor: default; }
+  .stage.on-inverse .controls { color: var(--inverse-ink); }
+  .stage.on-inverse .controls button { background: transparent; color: var(--inverse-ink); border-color: rgba(255, 255, 255, 0.35); }
+  .deck-name { position: absolute; left: 80px; bottom: 26px; font-size: 14px; color: var(--muted); z-index: 5; }
+  .stage.on-inverse .deck-name, .stage.on-title .deck-name { visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) { .progress { transition: none; } }
 
   .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-  /* ---------- responsive ---------- */
-  @media (max-width: 1000px) {
-    .hero { grid-template-columns: 1fr; }
-    .steps { grid-template-columns: 1fr; gap: 22px; }
-    .steps::before { top: 22px; bottom: 22px; left: 21px; right: auto; width: 2px; height: auto; }
-    .steps li { grid-template-columns: 44px 1fr; column-gap: 18px; row-gap: 4px; }
-    .steps li::before { grid-row: span 2; }
-    .private { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 820px) {
-    .recap, .blueprint, .benefits, .guards, .setup, .outcomes { grid-template-columns: 1fr; }
-    .blueprint { column-gap: 0; }
-  }
-  @media (max-width: 480px) {
-    body { font-size: 17px; }
-    .lead, .hero .lead { font-size: 19px; }
-    .sees { grid-template-columns: 1fr; }
-    .benefit { padding: 22px; }
+  /* ---------- print / Save as PDF: one slide per page, slide-sized ---------- */
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { height: auto; overflow: visible; background: var(--ground); }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stage { position: static; transform: none !important; width: 1280px; height: auto; box-shadow: none; overflow: visible; }
+    .slide, .slide.past, .slide.active {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition: none;
+      break-after: page;
+    }
+    .controls, .progress, .deck-name { display: none; }
+    .caret { animation: none; }
   }
 </style>
 </head>
 <body>
 
-<nav class="rail" aria-label="Sections">
-  <ol>
-    <li><a href="#start"><span class="label">AI Report Studio</span><span class="dot"></span></a></li>
-    <li><a href="#recap"><span class="label">Where we left off</span><span class="dot"></span></a></li>
-    <li><a href="#before"><span class="label">Before and after</span><span class="dot"></span></a></li>
-    <li><a href="#how"><span class="label">How it works</span><span class="dot"></span></a></li>
-    <li><a href="#prepares"><span class="label">What the AI prepares</span><span class="dot"></span></a></li>
-    <li><a href="#benefits"><span class="label">Faster, easier, cheaper</span><span class="dot"></span></a></li>
-    <li><a href="#compare"><span class="label">Side by side</span><span class="dot"></span></a></li>
-    <li><a href="#trust"><span class="label">Safe by design</span><span class="dot"></span></a></li>
-    <li><a href="#setup"><span class="label">What it needs</span><span class="dot"></span></a></li>
-<!--    <li><a href="#close"><span class="label">The bottom line</span><span class="dot"></span></a></li>-->
-  </ol>
-</nav>
+<main class="stage" id="stage" aria-roledescription="presentation" aria-label="Power BI AI Report Studio">
 
-<main class="wrap">
-
-  <!-- ============ HERO ============ -->
-  <header class="slide hero" id="start" data-slide>
-    <div class="hero-copy">
-      <p class="eyebrow">Odoo Power BI Connector · New: AI Report Studio</p>
+  <!-- ============ 1 · TITLE ============ -->
+  <section class="slide title-slide" data-title="AI Report Studio">
+    <div class="title-copy">
+      <p class="eyebrow">Odoo Power BI Connector · New feature</p>
       <h1>Describe the report. <span class="then">Get it in Power BI.</span></h1>
-      <p class="lead">One sentence becomes a finished Power BI report: the formulas, the charts and the layout, bound to your Odoo data and ready to open in Power BI or inside Odoo.</p>
-      <p class="hint">Presenting? Press <kbd>→</kbd> for the next section and <kbd>←</kbd> to go back.</p>
+      <p class="lead">One sentence becomes a finished Power BI report: the formulas, the charts and the layout, bound to your Odoo data.</p>
+      <p class="keys"><span><kbd>→</kbd> next</span><span><kbd>←</kbd> back</span><span><kbd>F</kbd> full screen</span></p>
+      <p class="byline">Prepared by Ahmed Emara</p>
     </div>
-
     <figure class="demo">
       <div class="prompt">
         <span class="prompt-label">What report do you want to build?</span>
@@ -503,7 +501,6 @@
       </div>
       <div class="thumb">
         <svg viewBox="0 0 320 180" role="img" aria-label="Illustration of the generated report layout: four KPI cards across the top, then a column chart, a line chart, a donut chart and a bar chart in a two by two grid.">
-          <!-- KPI row -->
           <rect class="t-tile" x="4" y="4" width="75" height="30" rx="4"></rect>
           <rect class="t-tile" x="83" y="4" width="75" height="30" rx="4"></rect>
           <rect class="t-tile" x="162" y="4" width="75" height="30" rx="4"></rect>
@@ -516,7 +513,6 @@
           <rect class="t-value" x="89" y="18" width="30" height="8" rx="2"></rect>
           <rect class="t-value" x="168" y="18" width="44" height="8" rx="2"></rect>
           <rect class="t-value" x="247" y="18" width="36" height="8" rx="2"></rect>
-          <!-- 2 x 2 chart grid -->
           <rect class="t-panel" x="4" y="38" width="154" height="67" rx="4"></rect>
           <rect class="t-panel" x="162" y="38" width="154" height="67" rx="4"></rect>
           <rect class="t-panel" x="4" y="109" width="154" height="67" rx="4"></rect>
@@ -525,18 +521,15 @@
           <rect class="t-label" x="168" y="43" width="46" height="3" rx="1.5"></rect>
           <rect class="t-label" x="10" y="114" width="36" height="3" rx="1.5"></rect>
           <rect class="t-label" x="168" y="114" width="42" height="3" rx="1.5"></rect>
-          <!-- column chart -->
           <rect class="t-amber" x="16" y="72" width="14" height="28"></rect>
           <rect class="t-amber" x="38" y="64" width="14" height="36"></rect>
           <rect class="t-amber" x="60" y="76" width="14" height="24"></rect>
           <rect class="t-amber" x="82" y="58" width="14" height="42"></rect>
           <rect class="t-amber" x="104" y="66" width="14" height="34"></rect>
           <rect class="t-amber" x="126" y="54" width="14" height="46"></rect>
-          <!-- line chart -->
           <polygon class="t-area" points="172,92 194,84 216,88 238,72 260,76 282,62 306,58 306,100 172,100"></polygon>
           <polyline class="t-line" points="172,92 194,84 216,88 238,72 260,76 282,62 306,58"></polyline>
           <circle class="t-dot" cx="306" cy="58" r="3"></circle>
-          <!-- donut -->
           <g transform="rotate(-90 44 144)">
             <circle class="t-ring base" cx="44" cy="144" r="20"></circle>
             <circle class="t-ring a" cx="44" cy="144" r="20" stroke-dasharray="62 64"></circle>
@@ -548,45 +541,42 @@
           <rect class="t-label" x="95" y="147" width="36" height="3" rx="1.5"></rect>
           <rect class="t-label" x="82" y="158" width="8" height="8" rx="2"></rect>
           <rect class="t-label" x="95" y="161" width="28" height="3" rx="1.5"></rect>
-          <!-- bar chart -->
           <rect class="t-plum" x="172" y="124" width="116" height="8" rx="1"></rect>
           <rect class="t-plum" x="172" y="137" width="90" height="8" rx="1"></rect>
           <rect class="t-plum" x="172" y="150" width="66" height="8" rx="1"></rect>
           <rect class="t-plum" x="172" y="163" width="44" height="8" rx="1"></rect>
         </svg>
       </div>
-      <figcaption>Illustration: an example request and the layout it produces. KPI cards on top, a 2 × 2 chart grid below, on a 1280 × 720 Power BI page.</figcaption>
+      <figcaption>Illustration: an example request and the layout it produces, KPI cards on top and a 2 × 2 chart grid on a 1280 × 720 Power BI page.</figcaption>
     </figure>
-  </header>
+  </section>
 
-  <!-- ============ RECAP ============ -->
-  <section class="slide" id="recap" data-slide aria-labelledby="recap-title">
-    <div class="slide-head">
+  <!-- ============ 2 · RECAP ============ -->
+  <section class="slide" data-title="Where we left off">
+    <div class="head">
       <p class="eyebrow">Where we left off</p>
-      <h2 id="recap-title">Part one already moved Odoo’s data into Power BI, on its own.</h2>
+      <h2>Part one already moved Odoo’s data into Power BI, on its own.</h2>
     </div>
     <ul class="recap">
       <li><span class="tick" aria-hidden="true">✓</span><span>Odoo sends its data to Power BI and Microsoft Fabric, straight from the server.</span></li>
       <li><span class="tick" aria-hidden="true">✓</span><span>No connector subscription: it replaced the paid CData connector.</span></li>
       <li><span class="tick" aria-hidden="true">✓</span><span>No PC or gateway that has to stay switched on.</span></li>
       <li><span class="tick" aria-hidden="true">✓</span><span>Works on Odoo.sh and shared servers, with no public IP.</span></li>
-      <li><span class="tick" aria-hidden="true">✓</span><span>Whole apps chosen in one click, with relationships built automatically.</span></li>
+      <li><span class="tick" aria-hidden="true">✓</span><span>Whole apps chosen in one click, relationships built automatically.</span></li>
       <li><span class="tick" aria-hidden="true">✓</span><span>Scheduled refresh, and Power BI reports opened inside Odoo.</span></li>
     </ul>
-    <p class="gap-line"><span class="mark" aria-hidden="true">!</span><span><b>One step was still manual.</b> The data arrived in Power BI, but someone still had to build every report from it.</span></p>
+    <p class="gap-line"><span class="mark" aria-hidden="true">!</span><span><b>One step was still manual.</b> The data reached Power BI, but someone still had to build every report from it.</span></p>
   </section>
 
-  <!-- ============ BEFORE / AFTER WORKFLOW ============ -->
-  <section class="slide" id="before" data-slide aria-labelledby="before-title">
-    <div class="slide-head">
+  <!-- ============ 3 · BEFORE / AFTER ============ -->
+  <section class="slide" data-title="Before and after">
+    <div class="head">
       <p class="eyebrow">Before and after</p>
-      <h2 id="before-title">Building a report used to take a specialist and a cycle. Now it takes a sentence.</h2>
-      <p class="lead">A good report needs someone who knows Odoo’s data, Power BI’s formula language (DAX) and report design. Every change request went back to the same person.</p>
+      <h2>A report used to take a specialist and a cycle. Now it takes a sentence.</h2>
     </div>
     <figure class="diagram">
-      <div class="diagram-scroll">
+      <div class="diagram-card">
         <svg viewBox="0 0 892 280" role="img" aria-label="Before: a Power BI specialist gathers requirements, maps the Odoo data, writes DAX, designs charts and publishes, and every change goes back to the start. With AI Report Studio: anyone describes the report, reviews it and clicks Build and Push; the same Power BI report comes out.">
-          <!-- ===== lane A: specialist ===== -->
           <text class="d-row d-row-old" x="16" y="26">BEFORE · A POWER BI SPECIALIST</text>
           <rect class="d-box" x="16" y="44" width="120" height="52" rx="10"></rect>
           <text class="d-title" x="76" y="75" text-anchor="middle">Requirements</text>
@@ -601,7 +591,6 @@
           <rect class="d-result" x="756" y="44" width="120" height="52" rx="10"></rect>
           <text class="d-title" x="816" y="66" text-anchor="middle">Report</text>
           <text class="d-sub" x="816" y="84" text-anchor="middle">in Power BI</text>
-
           <line class="d-link" x1="139" y1="70" x2="154" y2="70"></line>
           <polygon class="d-link-head" points="162,70 153,65 153,75"></polygon>
           <line class="d-link" x1="287" y1="70" x2="302" y2="70"></line>
@@ -612,15 +601,10 @@
           <polygon class="d-link-head" points="606,70 597,65 597,75"></polygon>
           <line class="d-link" x1="731" y1="70" x2="746" y2="70"></line>
           <polygon class="d-link-head" points="754,70 745,65 745,75"></polygon>
-
-          <!-- revision loop -->
           <path class="d-loop" d="M668 97 V124 H76 V108"></path>
           <polygon class="d-loop-head" points="76,99 70,109 82,109"></polygon>
           <text class="d-text-old" x="372" y="144" text-anchor="middle">every change request goes back to the start</text>
-
           <line class="d-rule" x1="16" y1="166" x2="876" y2="166"></line>
-
-          <!-- ===== lane B: AI Report Studio ===== -->
           <text class="d-row d-row-new" x="16" y="194">WITH AI REPORT STUDIO · ANYONE ON THE TEAM</text>
           <rect class="d-box" x="16" y="212" width="120" height="52" rx="10"></rect>
           <text class="d-title" x="76" y="243" text-anchor="middle">Describe</text>
@@ -631,7 +615,6 @@
           <rect class="d-result" x="756" y="212" width="120" height="52" rx="10"></rect>
           <text class="d-title" x="816" y="234" text-anchor="middle">Report</text>
           <text class="d-sub" x="816" y="252" text-anchor="middle">in Power BI</text>
-
           <line class="d-link" x1="139" y1="238" x2="154" y2="238"></line>
           <polygon class="d-link-head" points="162,238 153,233 153,243"></polygon>
           <line class="d-link" x1="287" y1="238" x2="302" y2="238"></line>
@@ -642,15 +625,15 @@
           <text class="d-sub" x="594" y="258" text-anchor="middle">no DAX · no Power BI Desktop</text>
         </svg>
       </div>
-      <figcaption>Same result, shorter road. The steps a specialist did by hand are done in one click, and a change is a new request, not a new cycle.</figcaption>
+      <figcaption>Same result, shorter road. A change is a new request, not a new cycle.</figcaption>
     </figure>
   </section>
 
-  <!-- ============ HOW IT WORKS ============ -->
-  <section class="slide" id="how" data-slide aria-labelledby="how-title">
-    <div class="slide-head">
+  <!-- ============ 4 · HOW IT WORKS ============ -->
+  <section class="slide" data-title="How it works">
+    <div class="head">
       <p class="eyebrow">How it works</p>
-      <h2 id="how-title">From a request to a live report in five steps.</h2>
+      <h2>From a request to a live report in five steps.</h2>
     </div>
     <ol class="steps">
       <li>
@@ -659,7 +642,7 @@
       </li>
       <li>
         <h3>The AI reads the dataset</h3>
-        <p>Google Gemini studies its tables, columns and links, and drafts a report built for your request.</p>
+        <p>Google Gemini studies its tables, columns and links, and drafts a report for the request.</p>
       </li>
       <li>
         <h3>Review the blueprint</h3>
@@ -671,53 +654,54 @@
       </li>
       <li>
         <h3>Open and reuse</h3>
-        <p>Open it in Power BI or inside Odoo, and save the design to reuse for the next client.</p>
+        <p>Open it in Power BI or inside Odoo, and save the design for the next client.</p>
       </li>
     </ol>
   </section>
 
-  <!-- ============ WHAT THE AI PREPARES ============ -->
-  <section class="slide" id="prepares" data-slide aria-labelledby="prepares-title">
-    <div class="slide-head">
+  <!-- ============ 5 · WHAT THE AI PREPARES ============ -->
+  <section class="slide" data-title="What the AI prepares">
+    <div class="head">
       <p class="eyebrow">What the AI prepares</p>
-      <h2 id="prepares-title">A complete report, not a list of suggestions.</h2>
+      <h2>A complete report, not a list of suggestions.</h2>
     </div>
     <dl class="blueprint">
       <div>
-        <dt>A title and an executive summary</dt>
-        <dd>What the report tracks and why it matters, written for the request that was made.</dd>
+        <dt>Title and summary</dt>
+        <dd>What the report tracks and why it matters, written for the request.</dd>
       </div>
       <div>
         <dt>Strategic insights</dt>
-        <dd>What to watch and which thresholds matter, to read the report with.</dd>
+        <dd>What to watch and which thresholds matter when reading it.</dd>
       </div>
       <div>
-        <dt>The formulas (DAX measures)</dt>
-        <dd>Totals, averages, counts and ratios, installed in the Power BI dataset so every chart and every later report can use them.</dd>
+        <dt>The formulas (DAX)</dt>
+        <dd>Totals, averages, counts and ratios, installed in the Power BI dataset for reuse.</dd>
       </div>
       <div>
         <dt>The page layout</dt>
-        <dd>KPI cards on top, charts in a grid below, titled and sorted. Extra pages are added when there are more charts.</dd>
+        <dd>KPI cards on top, titled and sorted charts below, extra pages when needed.</dd>
       </div>
-      <div class="wide">
-        <dt>The charts, eleven kinds to choose from</dt>
-        <dd>The AI picks the chart that fits each question.</dd>
-        <ul class="chips" aria-label="Chart types">
-          <li>KPI card</li><li>Column</li><li>Bar</li><li>Line</li><li>Area</li><li>Donut</li><li>Pie</li><li>Funnel</li><li>Gauge</li><li>Table</li><li>Matrix</li>
-        </ul>
+      <div>
+        <dt>A preview in Odoo</dt>
+        <dd>Key figures calculated from Odoo records, to check the numbers before publishing.</dd>
       </div>
-      <div class="wide">
-        <dt>A preview in Odoo, before publishing</dt>
-        <dd>The key figures are calculated from the Odoo records right away, so the numbers can be checked before the report goes to Power BI.</dd>
+      <div>
+        <dt>Eleven chart types</dt>
+        <dd>
+          <ul class="chips" aria-label="Chart types">
+            <li>KPI card</li><li>Column</li><li>Bar</li><li>Line</li><li>Area</li><li>Donut</li><li>Pie</li><li>Funnel</li><li>Gauge</li><li>Table</li><li>Matrix</li>
+          </ul>
+        </dd>
       </div>
     </dl>
   </section>
 
-  <!-- ============ BENEFITS ============ -->
-  <section class="slide" id="benefits" data-slide aria-labelledby="benefits-title">
-    <div class="slide-head">
+  <!-- ============ 6 · BENEFITS ============ -->
+  <section class="slide" data-title="Faster, easier, cheaper">
+    <div class="head">
       <p class="eyebrow">Why it matters</p>
-      <h2 id="benefits-title">Faster to deliver, easier to use, cheaper for the client.</h2>
+      <h2>Faster to deliver, easier to use, cheaper for the client.</h2>
     </div>
     <div class="benefits">
       <article class="benefit">
@@ -725,7 +709,7 @@
         <ul>
           <li>A request becomes a live report in minutes, not a project.</li>
           <li>No waiting for a specialist to be free.</li>
-          <li>A change is a new request, answered in the same minutes.</li>
+          <li>A change is a new request, answered just as fast.</li>
         </ul>
       </article>
       <article class="benefit">
@@ -733,27 +717,27 @@
         <ul>
           <li>Plain language in, a finished report out.</li>
           <li>No DAX, no Power BI Desktop, no data model to learn.</li>
-          <li>Everything is shown for review before it is published.</li>
+          <li>Everything is shown for review before publishing.</li>
         </ul>
       </article>
       <article class="benefit cost">
         <p class="word">Cheaper</p>
         <ul>
-          <li>Everyday reports no longer need Power BI specialist hours.</li>
-          <li>Build a report once, save it, apply it to the next client’s data.</li>
-          <li>Specialists are kept for the truly advanced analysis.</li>
+          <li>Everyday reports without Power BI specialist hours.</li>
+          <li>Build once, save it, apply it to the next client’s data.</li>
+          <li>Specialists kept for the truly advanced analysis.</li>
         </ul>
       </article>
     </div>
   </section>
 
-  <!-- ============ COMPARISON ============ -->
-  <section class="slide" id="compare" data-slide aria-labelledby="compare-title">
-    <div class="slide-head">
+  <!-- ============ 7 · SIDE BY SIDE ============ -->
+  <section class="slide" data-title="Side by side">
+    <div class="head">
       <p class="eyebrow">Side by side</p>
-      <h2 id="compare-title">What changes for the client.</h2>
+      <h2>What changes for the client.</h2>
     </div>
-    <div class="table-scroll">
+    <div class="table-card">
       <table>
         <thead>
           <tr>
@@ -763,75 +747,52 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <th scope="row">Who builds it</th>
-            <td class="old">A Power BI specialist</td>
-            <td class="new">Anyone who can describe what they need</td>
-          </tr>
-          <tr>
-            <th scope="row">Skills needed</th>
-            <td class="old">Odoo’s data model, DAX, Power BI Desktop</td>
-            <td class="new">Plain language</td>
-          </tr>
-          <tr>
-            <th scope="row">The road to a report</th>
-            <td class="old">Requirements, mapping, formulas, design, publishing</td>
-            <td class="new">Describe, review, one click</td>
-          </tr>
-          <tr>
-            <th scope="row">A change request</th>
-            <td class="old">Back to the specialist for another round</td>
-            <td class="new">Adjust the request and generate again</td>
-          </tr>
-          <tr>
-            <th scope="row">The next client with the same need</th>
-            <td class="old">Rebuilt or re-pointed by hand</td>
-            <td class="new">Apply the saved design to their dataset</td>
-          </tr>
-          <tr>
-            <th scope="row">Where it opens</th>
-            <td class="old">Power BI</td>
-            <td class="new">Power BI, and inside Odoo</td>
-          </tr>
+          <tr><th scope="row">Who builds it</th><td class="old">A Power BI specialist</td><td class="new">Anyone who can describe what they need</td></tr>
+          <tr><th scope="row">Skills needed</th><td class="old">Odoo’s data model, DAX, Power BI Desktop</td><td class="new">Plain language</td></tr>
+          <tr><th scope="row">The road to a report</th><td class="old">Requirements, mapping, formulas, design, publishing</td><td class="new">Describe, review, one click</td></tr>
+          <tr><th scope="row">A change request</th><td class="old">Back to the specialist for another round</td><td class="new">Adjust the request and generate again</td></tr>
+          <tr><th scope="row">Next client, same need</th><td class="old">Rebuilt or re-pointed by hand</td><td class="new">Apply the saved design to their dataset</td></tr>
+          <tr><th scope="row">Where it opens</th><td class="old">Power BI</td><td class="new">Power BI, and inside Odoo</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
-  <!-- ============ TRUST ============ -->
-  <section class="slide" id="trust" data-slide aria-labelledby="trust-title">
-    <div class="slide-head">
+  <!-- ============ 8 · PRIVACY ============ -->
+  <section class="slide inverse" data-title="Privacy">
+    <div class="claim">
       <p class="eyebrow">Safe by design</p>
-      <h2 id="trust-title">The AI drafts. Your team decides, and the module checks.</h2>
+      <h2>The AI sees the shape of the data, never the data.</h2>
+      <p>To draft a report, Gemini receives table and column names. Customer names, invoices and amounts are not sent.</p>
     </div>
-
-    <div class="private">
+    <div class="sees">
       <div>
-        <h3>The AI sees the shape of the data, never the data.</h3>
-        <p>To draft a report, Gemini receives table and column names. Customer names, invoices and amounts are not sent.</p>
+        <b>Sent to the AI</b>
+        <ul>
+          <li>Table names</li>
+          <li>Column names and types</li>
+          <li>Links between tables</li>
+          <li>Existing formulas</li>
+        </ul>
       </div>
-      <div class="sees">
-        <div>
-          <b>Sent to the AI</b>
-          <ul>
-            <li>Table names</li>
-            <li>Column names and types</li>
-            <li>Links between tables</li>
-            <li>Existing formulas</li>
-          </ul>
-        </div>
-        <div>
-          <b>Never sent</b>
-          <ul>
-            <li>Customers and suppliers</li>
-            <li>Invoices and orders</li>
-            <li>Amounts and quantities</li>
-            <li>Any other record</li>
-          </ul>
-        </div>
+      <div>
+        <b>Never sent</b>
+        <ul>
+          <li>Customers and suppliers</li>
+          <li>Invoices and orders</li>
+          <li>Amounts and quantities</li>
+          <li>Any other record</li>
+        </ul>
       </div>
     </div>
+  </section>
 
+  <!-- ============ 9 · SAFETY CHECKS ============ -->
+  <section class="slide" data-title="Safety checks">
+    <div class="head">
+      <p class="eyebrow">Safe by design</p>
+      <h2>The AI drafts. Your team decides, and the module checks.</h2>
+    </div>
     <div class="guards">
       <article class="guard">
         <h3>You approve first</h3>
@@ -839,7 +800,7 @@
       </article>
       <article class="guard">
         <h3>Only real fields</h3>
-        <p>Every formula is checked against the actual tables and columns. Invented names are caught before Power BI sees them.</p>
+        <p>Every formula is checked against the actual tables and columns before Power BI sees it.</p>
       </article>
       <article class="guard">
         <h3>No broken charts</h3>
@@ -860,25 +821,25 @@
     </div>
   </section>
 
-  <!-- ============ SETUP ============ -->
-  <section class="slide" id="setup" data-slide aria-labelledby="setup-title">
-    <div class="slide-head">
+  <!-- ============ 10 · SETUP ============ -->
+  <section class="slide" data-title="What it needs">
+    <div class="head">
       <p class="eyebrow">What it needs</p>
-      <h2 id="setup-title">A one-time setup, then it is ready for every report.</h2>
+      <h2>A one-time setup, then it is ready for every report.</h2>
     </div>
     <ul class="setup">
-      <li><span class="box" aria-hidden="true"></span><span><b>A Google Gemini API key</b>, from Google AI Studio (a free tier is available), entered once in the Power BI settings.</span></li>
-      <li><span class="box" aria-hidden="true"></span><span><b>A Power BI Pro licence</b> for the account that publishes.</span></li>
-      <li><span class="box" aria-hidden="true"></span><span><b>One Microsoft permission</b> to create reports, approved once by an administrator.</span></li>
-      <li><span class="box" aria-hidden="true"></span><span><b>Data sent to the dataset</b>, so the new report has real figures to show.</span></li>
+      <li><span class="box" aria-hidden="true"></span><span><b>A Google Gemini API key</b>From Google AI Studio (a free tier is available), entered once in the Power BI settings.</span></li>
+      <li><span class="box" aria-hidden="true"></span><span><b>A Power BI Pro licence</b>For the account that publishes the reports.</span></li>
+      <li><span class="box" aria-hidden="true"></span><span><b>One Microsoft permission</b>To create reports, approved once by an administrator.</span></li>
+      <li><span class="box" aria-hidden="true"></span><span><b>Data sent to the dataset</b>So every new report has real figures to show.</span></li>
     </ul>
   </section>
 
-  <!-- ============ CLOSE ============ -->
-  <section class="slide close" id="close" data-slide aria-labelledby="close-title">
-    <div class="slide-head">
-<!--      <p class="eyebrow">The bottom line</p>-->
-      <h2 id="close-title">Part one brought the data to Power BI. Part two builds the reports.</h2>
+  <!-- ============ 11 · CLOSE ============ -->
+  <section class="slide close" data-title="The bottom line">
+    <div class="head">
+      <p class="eyebrow">The bottom line</p>
+      <h2>Part one brought the data to Power BI. Part two builds the reports.</h2>
     </div>
     <div class="outcomes">
       <div class="outcome">
@@ -894,56 +855,89 @@
         <p>Expert time goes to the analysis that really needs it.</p>
       </div>
     </div>
+    <p class="byline">Odoo Power BI Connector · AI Report Studio · Prepared by Ahmed Emara</p>
   </section>
 
-  <footer>
-    <span>Odoo Power BI Connector · AI Report Studio</span>
-    <span>Prepared by Ahmed Emara</span>
-  </footer>
+  <p class="deck-name">AI Report Studio</p>
+  <div class="controls">
+    <button type="button" id="prev-slide" aria-label="Previous slide">‹</button>
+    <span id="slide-counter" aria-live="polite">1 / 11</span>
+    <button type="button" id="next-slide" aria-label="Next slide">›</button>
+  </div>
+  <div class="progress" id="progress"></div>
 </main>
 
 <script>
   (function () {
-    var sections = Array.prototype.slice.call(document.querySelectorAll('[data-slide]'));
-    var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var stage = document.getElementById('stage');
+    var slides = Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+    var counter = document.getElementById('slide-counter');
+    var progress = document.getElementById('progress');
+    var prev = document.getElementById('prev-slide');
+    var next = document.getElementById('next-slide');
+    var current = 0;
 
-    function currentIndex() {
-      var doc = document.documentElement;
-      if (window.innerHeight + window.scrollY >= doc.scrollHeight - 2) {
-        return sections.length - 1;
-      }
-      var line = window.innerHeight * 0.35;
-      var index = 0;
-      sections.forEach(function (section, i) {
-        if (section.getBoundingClientRect().top <= line) { index = i; }
+    // fit the 1280 x 720 stage into the window, keeping 16:9
+    function fit() {
+      var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+      stage.style.setProperty('--scale', scale);
+    }
+
+    function show(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach(function (slide, i) {
+        var active = i === current;
+        slide.classList.toggle('active', active);
+        slide.classList.toggle('past', i < current);
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+        if (active) { slide.removeAttribute('inert'); } else { slide.setAttribute('inert', ''); }
       });
-      return index;
+      var slide = slides[current];
+      stage.classList.toggle('on-inverse', slide.classList.contains('inverse'));
+      stage.classList.toggle('on-title', current === 0);
+      counter.textContent = (current + 1) + ' / ' + slides.length;
+      progress.style.width = ((current + 1) / slides.length * 100) + '%';
+      prev.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+      try { history.replaceState(null, '', '#' + (current + 1)); } catch (e) { /* file:// may refuse */ }
     }
 
-    function mark() {
-      var index = currentIndex();
-      links.forEach(function (link, i) {
-        link.setAttribute('aria-current', i === index ? 'true' : 'false');
-      });
+    function fullscreen() {
+      try {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); }
+      } catch (e) { /* not available */ }
     }
-
-    function go(index) {
-      var target = sections[Math.max(0, Math.min(sections.length - 1, index))];
-      target.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth', block: 'start' });
-    }
-
-    window.addEventListener('scroll', mark, { passive: true });
-    window.addEventListener('resize', mark);
-    mark();
 
     window.addEventListener('keydown', function (event) {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) { return; }
-      var target = event.target;
-      if (target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) { return; }
-      if (event.key === 'ArrowRight') { event.preventDefault(); go(currentIndex() + 1); }
-      else if (event.key === 'ArrowLeft') { event.preventDefault(); go(currentIndex() - 1); }
+      if (event.altKey || event.ctrlKey || event.metaKey) { return; }
+      switch (event.key) {
+        case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':
+          event.preventDefault(); show(current + 1); break;
+        case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace':
+          event.preventDefault(); show(current - 1); break;
+        case 'Home': event.preventDefault(); show(0); break;
+        case 'End': event.preventDefault(); show(slides.length - 1); break;
+        case 'f': case 'F': event.preventDefault(); fullscreen(); break;
+      }
     });
+    prev.addEventListener('click', function () { show(current - 1); });
+    next.addEventListener('click', function () { show(current + 1); });
+
+    // swipe on tablets and phones
+    var startX = null;
+    stage.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', function (e) {
+      if (startX === null) { return; }
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) { show(current + (dx < 0 ? 1 : -1)); }
+      startX = null;
+    }, { passive: true });
+
+    window.addEventListener('resize', fit);
+    fit();
+    var fromHash = parseInt((location.hash || '').replace('#', ''), 10);
+    show(isNaN(fromHash) ? 0 : fromHash - 1);
   })();
 </script>
 </body>
